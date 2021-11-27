@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyClientCredentials
+from pprint import pprint
 
 import config
 
@@ -12,6 +14,12 @@ SCOPE = "playlist-modify-private"
 
 BASE_URL = "https://www.billboard.com/charts/hot-100/"
 
+date = input('Which year do you want to travel to? (in format YYYY-MM-DD): ')
+response = requests.get(f'{BASE_URL}{date}/')
+soup = BeautifulSoup(response.text, "html.parser")
+songs = soup.select("ul li h3")[:100]
+song_title = [song.get_text().strip('\n') for song in songs]
+
 sp = spotipy.Spotify(
     auth_manager=SpotifyOAuth(
         client_id=CLIENT_ID,
@@ -20,14 +28,16 @@ sp = spotipy.Spotify(
         scope=SCOPE,
         show_dialog=True,
         cache_path="token.txt"
-    )
+    ),
 )
 user_id = sp.me()["id"]
-
-# print(sp)
-
-# date = input('Which year do you want to travel to? (in format YYYY-MM-DD): ')
-# response = requests.get(f'{BASE_URL}{date}/')
-# soup = BeautifulSoup(response.text, "html.parser")
-# songs = soup.select("ul li h3")[:100]
-# song_title = [song.get_text().strip('\n') for song in songs]
+year = date.split("-")[0]
+client_list = []
+for title in song_title:
+    result = sp.search(q=f'track{title} year:{year}')
+    try:
+        uri = result["tracks"]["items"][0]["uri"]
+        client_list.append(uri)
+        print(f'Added {title}!')
+    except IndexError:
+        print(f'{title} not found')
