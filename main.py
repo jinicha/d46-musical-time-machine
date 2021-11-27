@@ -41,3 +41,12 @@ for title in song_title:
         print(f'Added {title}!')
     except IndexError:
         print(f'{title} not found')
+
+create_list_response = sp.user_playlist_create(
+    user=user_id,
+    name=f'{date} Billboard 100',
+    public=False,
+    description="test"
+)
+playlist_id = create_list_response["id"]
+pprint(create_list_response)
