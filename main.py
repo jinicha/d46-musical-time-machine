@@ -32,16 +32,7 @@ sp = spotipy.Spotify(
 )
 user_id = sp.me()["id"]
 year = date.split("-")[0]
-client_list = []
-for title in song_title:
-    result = sp.search(q=f'track{title} year:{year}')
-    try:
-        uri = result["tracks"]["items"][0]["uri"]
-        client_list.append(uri)
-        print(f'Added {title}!')
-    except IndexError:
-        print(f'{title} not found')
-
+uri_list = []
 create_list_response = sp.user_playlist_create(
     user=user_id,
     name=f'{date} Billboard 100',
@@ -49,4 +40,19 @@ create_list_response = sp.user_playlist_create(
     description="test"
 )
 playlist_id = create_list_response["id"]
-pprint(create_list_response)
+
+for title in song_title:
+    result = sp.search(q=f'track{title} year:{year}')
+    try:
+        uri = result["tracks"]["items"][0]["uri"]
+        uri_list.append(uri)
+        print(f'uri added')
+    except IndexError:
+        print(f'{title} not found')
+
+sp.playlist_add_items(
+    playlist_id=playlist_id,
+    items=uri_list
+)
+
+# pprint(create_list_response)
